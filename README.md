@@ -1,10 +1,10 @@
 # projectDemo
 
-对象池，ScopeGuard 加入了线程控制；
-ScopeGuard 加入了转移 && 处理；
-ScopeGuard 向外提供 makeGuard 借口，隐藏构造函数；
-ScopeGuard 实现了函数类型擦除；
-ScopeGuard 实现了可变参数；
+1. 对象池，ScopeGuard 加入了线程控制；
+2. ScopeGuard 加入了转移 && 处理；
+3. ScopeGuard 向外提供 makeGuard 借口，隐藏构造函数；
+4. ScopeGuard 实现了函数类型擦除；
+5. ScopeGuard 实现了可变参数；
 存在的问题：
 1. 不好书写，由于 template 未能实现宏
 2. 因为可变参数的原因，忽略了 Acquire 获取资源这一阶段
