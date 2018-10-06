@@ -1,0 +1,67 @@
+#include <iostream>
+#include <string>
+#include <vector>
+#include <memory>
+#include <functional>
+#include <mutex>
+#include <unordered_map>
+#include <map>
+#include <typeinfo>
+#include <boost/noncopyable.hpp>
+#include <boost/any.hpp>
+
+namespace YHL {
+
+    class superObectPool final : boost::noncopyable {
+        // 根据 typeid( std::function<> ) 作为第一个 string, 第二个参数是 any
+        using childMap = std::multimap<const char*, boost::any >;
+        // 根据 typeid(T) 作为第一个 string 参数, 第二个参数是这个类的所有对象.
+        using mapType = std::unordered_map<const char*, childMap >;
+
+    private:
+
+        std::mutex mtx;
+        bool destroyed;
+        mapType pool;
+
+    public:
+        ~superObectPool() { destroyed = true; }  // thread ?
+
+        template<typename T, typename... Args>
+        void emplace(T *ptr) {
+            pool.emplace(std::shared_ptr<T>(ptr));
+        }
+
+        template<typename T, typename... Args>
+        void emplace(Args&&... args) {
+
+            std::lock_guard<std::mutex> lck(mtx);
+
+            using ctorType = std::function< std::shared_ptr<T>(Args...) >;
+
+            auto ctorName = typeid(ctorType).name();
+
+            pool[typeid(T).name()].emplace(ctorName, [&](Args... args){  
+                return std::shared_ptr<T>(new T(args...));
+            });
+
+        }
+
+        const size_t size() const {
+            size_t res = 0;
+            for(const auto& it : pool)
+                res += it.second.size();
+            return res;
+        }
+
+        bool empty() const {
+            return pool.empty();
+        }
+    };
+
+}
+
+int main() {
+    YHL::superObectPool pool;
+    return 0;
+}
